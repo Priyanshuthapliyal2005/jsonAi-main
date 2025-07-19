@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState , useEffect } from "react"
 import { signIn, getProviders } from "next-auth/react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input"
 import { Code2, Mail } from "lucide-react"
 import Link from "next/link"
 import { toast } from "sonner"
+import { useSession } from "next-auth/react"
+import { useRouter } from "next/navigation"
 
 export function SignInPage() {
   const [email, setEmail] = useState("")
@@ -44,6 +46,17 @@ export function SignInPage() {
     signIn("google", { callbackUrl: "/builder" })
   }
 
+    const { data :session , status }  = useSession();
+  const router = useRouter();
+
+  useEffect(() => {
+    if(status === "authenticated"){
+      router.push("/builder");
+    }
+  },[status,router]);
+
+  if(status === "loading") return null;
+  
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 p-4">
       <div className="w-full max-w-md">
@@ -128,13 +141,7 @@ export function SignInPage() {
                 )}
               </Button>
             </form>
-
-            <div className="text-center text-sm text-gray-600 dark:text-gray-300">
-              Don't have an account?{" "}
-              <Link href="/" className="text-purple-600 hover:underline">
-                Get started for free
-              </Link>
-            </div>
+                
           </CardContent>
         </Card>
       </div>

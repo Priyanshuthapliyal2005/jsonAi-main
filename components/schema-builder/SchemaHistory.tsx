@@ -10,6 +10,8 @@ import { toast } from 'sonner';
 interface SchemaHistoryProps {
   fields: SchemaField[];
   onRestore: (fields: SchemaField[]) => void;
+  open: boolean;
+  setOpen: (open: boolean) => void;
 }
 
 interface HistoryEntry {
@@ -19,8 +21,8 @@ interface HistoryEntry {
   action: string;
 }
 
-export const SchemaHistory: React.FC<SchemaHistoryProps> = ({ fields, onRestore }) => {
-  const [isOpen, setIsOpen] = useState(false);
+// Removed duplicate/old implementation
+export const SchemaHistory: React.FC<SchemaHistoryProps> = ({ fields, onRestore, open, setOpen }) => {
   const [history, setHistory] = useState<HistoryEntry[]>([]);
 
   useEffect(() => {
@@ -42,7 +44,30 @@ export const SchemaHistory: React.FC<SchemaHistoryProps> = ({ fields, onRestore 
 
   const handleRestore = (entry: HistoryEntry) => {
     onRestore(entry.fields);
-    setIsOpen(false);
+  const getFieldSummary = (fields: SchemaField[]): { total: number; nested: number; string: number; number: number } => {
+    let total = 0;
+    let nested = 0;
+    let string = 0;
+    let number = 0;
+    for (const field of fields) {
+      total += 1;
+      if (field.type === 'Nested' && field.children) {
+        nested += 1;
+        const childSummary = getFieldSummary(field.children);
+        total += childSummary.total;
+        nested += childSummary.nested;
+        string += childSummary.string;
+        number += childSummary.number;
+      } else if (field.type === 'String') {
+        string += 1;
+      } else if (field.type === 'Number') {
+        number += 1;
+      }
+    }
+    return { total, nested, string, number };
+  };
+    setOpen(false);
+    setOpen(false);
     toast.success('Schema restored from history');
   };
 
@@ -59,26 +84,32 @@ export const SchemaHistory: React.FC<SchemaHistoryProps> = ({ fields, onRestore 
     return `${days}d ago`;
   };
 
-  const getFieldSummary = (fields: SchemaField[]) => {
-    const totalFields = fields.reduce((count, field) => {
+  // Only keep the correct getFieldSummary version
+  const getFieldSummary = (fields: SchemaField[]): { total: number; nested: number; string: number; number: number } => {
+    let total = 0;
+    let nested = 0;
+    let string = 0;
+    let number = 0;
+    for (const field of fields) {
+      total += 1;
       if (field.type === 'Nested' && field.children) {
-        return count + 1 + getFieldSummary(field.children).total;
+        nested += 1;
+        const childSummary = getFieldSummary(field.children);
+        total += childSummary.total;
+        nested += childSummary.nested;
+        string += childSummary.string;
+        number += childSummary.number;
+      } else if (field.type === 'String') {
+        string += 1;
+      } else if (field.type === 'Number') {
+        number += 1;
       }
-      return count + 1;
-    }, 0);
-
-    const nestedCount = fields.filter(f => f.type === 'Nested').length;
-    
-    return {
-      total: totalFields,
-      nested: nestedCount,
-      string: fields.filter(f => f.type === 'String').length,
-      number: fields.filter(f => f.type === 'Number').length
-    };
+    }
+    return { total, nested, string, number };
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="flex items-center gap-2">
           <History className="h-4 w-4" />
@@ -90,27 +121,14 @@ export const SchemaHistory: React.FC<SchemaHistoryProps> = ({ fields, onRestore 
           )}
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh]">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <History className="h-5 w-5" />
-            Schema History
-          </DialogTitle>
-        </DialogHeader>
-        
-        <ScrollArea className="h-[60vh] w-full">
-          {history.length === 0 ? (
-            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-              <Clock className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p className="text-lg font-medium mb-2">No history available</p>
-              <p className="text-sm">Make changes to your schema to see history entries here.</p>
-            </div>
-          ) : (
+      <DialogContent>
+        <span id="schema-history-desc" className="sr-only">View and restore previous versions of your schema.</span>
+        <div aria-describedby="schema-history-desc">
+          <ScrollArea>
             <div className="space-y-3">
               {history.map((entry, index) => {
                 const summary = getFieldSummary(entry.fields);
                 const isCurrentState = index === 0;
-                
                 return (
                   <div
                     key={entry.id}
@@ -132,12 +150,10 @@ export const SchemaHistory: React.FC<SchemaHistoryProps> = ({ fields, onRestore 
                             </Badge>
                           )}
                         </div>
-                        
                         <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
                           <Clock className="h-3 w-3" />
                           {formatTimestamp(entry.timestamp)}
                         </div>
-                        
                         <div className="flex items-center gap-3 text-xs">
                           <span className="flex items-center gap-1">
                             <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
@@ -159,7 +175,6 @@ export const SchemaHistory: React.FC<SchemaHistoryProps> = ({ fields, onRestore 
                           </span>
                         </div>
                       </div>
-                      
                       {!isCurrentState && (
                         <Button
                           variant="outline"
@@ -176,8 +191,8 @@ export const SchemaHistory: React.FC<SchemaHistoryProps> = ({ fields, onRestore 
                 );
               })}
             </div>
-          )}
-        </ScrollArea>
+          </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );

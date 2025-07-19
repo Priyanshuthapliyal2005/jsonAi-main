@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import Ajv from 'ajv';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
@@ -10,6 +11,8 @@ import { toast } from 'sonner';
 
 interface SchemaValidationProps {
   fields: SchemaField[];
+  open: boolean;
+  setOpen: (open: boolean) => void;
 }
 
 interface ValidationResult {
@@ -18,69 +21,48 @@ interface ValidationResult {
   warnings: string[];
 }
 
-export const SchemaValidation: React.FC<SchemaValidationProps> = ({ fields }) => {
-  const [isOpen, setIsOpen] = useState(false);
+
+
+export const SchemaValidation: React.FC<SchemaValidationProps> = ({ fields, open, setOpen }) => {
   const [jsonInput, setJsonInput] = useState('');
+  const [schemaInput, setSchemaInput] = useState('');
   const [validationResult, setValidationResult] = useState<ValidationResult | null>(null);
 
-  const validateJsonAgainstSchema = (jsonData: any, schemaFields: SchemaField[], path: string = ''): ValidationResult => {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-
-    const validateField = (data: any, field: SchemaField, currentPath: string) => {
-      const fieldPath = currentPath ? `${currentPath}.${field.name}` : field.name;
-
-      if (!(field.name in data)) {
-        errors.push(`Missing required field: ${fieldPath}`);
-        return;
-      }
-
-      const value = data[field.name];
-
-      if (field.type === 'String') {
-        if (typeof value !== 'string') {
-          errors.push(`Field ${fieldPath} should be a string, got ${typeof value}`);
-        } else if (value.length === 0) {
-          warnings.push(`Field ${fieldPath} is an empty string`);
-        }
+  // Import the same convertToJsonSchema logic as in SchemaExport
+  const convertToJsonSchema = (fields: SchemaField[]): any => {
+    const properties: any = {};
+    const required: string[] = [];
+    fields.forEach(field => {
+      if (field.type === 'Nested' && field.children) {
+        const nestedSchema = convertToJsonSchema(field.children);
+        properties[field.name] = {
+          type: 'object',
+          properties: nestedSchema.properties,
+          ...(nestedSchema.required && nestedSchema.required.length > 0 ? { required: nestedSchema.required } : {})
+        };
+      } else if (field.type === 'String') {
+        properties[field.name] = {
+          type: 'string',
+          default: field.value || ''
+        };
       } else if (field.type === 'Number') {
-        if (typeof value !== 'number') {
-          errors.push(`Field ${fieldPath} should be a number, got ${typeof value}`);
-        } else if (!Number.isFinite(value)) {
-          errors.push(`Field ${fieldPath} should be a finite number`);
-        }
-      } else if (field.type === 'Nested') {
-        if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-          errors.push(`Field ${fieldPath} should be an object, got ${typeof value}`);
-        } else if (field.children) {
-          const nestedResult = validateJsonAgainstSchema(value, field.children, fieldPath);
-          errors.push(...nestedResult.errors);
-          warnings.push(...nestedResult.warnings);
-        }
+        properties[field.name] = {
+          type: 'number',
+          default: field.value || 0
+        };
       }
-    };
-
-    if (typeof jsonData !== 'object' || jsonData === null || Array.isArray(jsonData)) {
-      errors.push('Root data should be an object');
-      return { isValid: false, errors, warnings };
-    }
-
-    schemaFields.forEach(field => validateField(jsonData, field, path));
-
-    // Check for extra fields
-    Object.keys(jsonData).forEach(key => {
-      const fieldExists = schemaFields.some(field => field.name === key);
-      if (!fieldExists) {
-        warnings.push(`Extra field found: ${path ? `${path}.${key}` : key}`);
+      if (field.required === undefined ? true : field.required) {
+        required.push(field.name);
       }
     });
-
     return {
-      isValid: errors.length === 0,
-      errors,
-      warnings
+      type: 'object',
+      properties,
+      ...(required.length > 0 ? { required } : {})
     };
   };
+
+  const ajv = new Ajv({ allErrors: true, strict: false });
 
   const handleValidation = () => {
     if (!jsonInput.trim()) {
@@ -88,15 +70,33 @@ export const SchemaValidation: React.FC<SchemaValidationProps> = ({ fields }) =>
       return;
     }
 
+    let schema;
+    if (schemaInput.trim()) {
+      try {
+        schema = JSON.parse(schemaInput);
+      } catch (e) {
+        setValidationResult({ isValid: false, errors: ['Invalid JSON Schema format'], warnings: [] });
+        toast.error('Invalid JSON Schema format');
+        return;
+      }
+    } else {
+      schema = convertToJsonSchema(fields);
+    }
+
     try {
       const jsonData = JSON.parse(jsonInput);
-      const result = validateJsonAgainstSchema(jsonData, fields);
-      setValidationResult(result);
-      
-      if (result.isValid) {
+      const validate = ajv.compile(schema);
+      const valid = validate(jsonData);
+      if (valid) {
+        setValidationResult({ isValid: true, errors: [], warnings: [] });
         toast.success('JSON is valid!');
       } else {
-        toast.error(`Validation failed with ${result.errors.length} error(s)`);
+        setValidationResult({
+          isValid: false,
+          errors: (validate.errors || []).map(e => `At ${e.instancePath || '/'}: ${e.message}`),
+          warnings: []
+        });
+        toast.error(`Validation failed with ${(validate.errors || []).length} error(s)`);
       }
     } catch (error) {
       setValidationResult({
@@ -126,7 +126,7 @@ export const SchemaValidation: React.FC<SchemaValidationProps> = ({ fields }) =>
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="flex items-center gap-2">
           <Shield className="h-4 w-4" />
@@ -139,73 +139,88 @@ export const SchemaValidation: React.FC<SchemaValidationProps> = ({ fields }) =>
             <Shield className="h-5 w-5" />
             JSON Schema Validation
           </DialogTitle>
+          <span id="schema-validation-desc" className="sr-only">Validate your JSON data against the current schema.</span>
         </DialogHeader>
-        
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              Enter JSON data to validate against your schema
-            </p>
-            <Button variant="outline" size="sm" onClick={generateSampleJson}>
-              Generate Sample
-            </Button>
-          </div>
-          
-          <Textarea
-            placeholder="Enter your JSON data here..."
-            value={jsonInput}
-            onChange={(e) => setJsonInput(e.target.value)}
-            className="min-h-[200px] font-mono text-sm"
-          />
-          
-          <div className="flex gap-2">
-            <Button onClick={handleValidation}>
-              Validate JSON
-            </Button>
-            <Button variant="outline" onClick={() => setJsonInput('')}>
-              Clear
-            </Button>
-          </div>
-          
-          {validationResult && (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                {validationResult.isValid ? (
-                  <>
-                    <CheckCircle className="h-5 w-5 text-green-500" />
-                    <Badge variant="default" className="bg-green-500">Valid</Badge>
-                  </>
-                ) : (
-                  <>
-                    <XCircle className="h-5 w-5 text-red-500" />
-                    <Badge variant="destructive">Invalid</Badge>
-                  </>
-                )}
-                <span className="text-sm text-muted-foreground">
-                  {validationResult.errors.length} error(s), {validationResult.warnings.length} warning(s)
-                </span>
-              </div>
-              
-              {(validationResult.errors.length > 0 || validationResult.warnings.length > 0) && (
-                <ScrollArea className="h-48 w-full rounded-md border p-4">
-                  <div className="space-y-2">
-                    {validationResult.errors.map((error, index) => (
-                      <div key={`error-${index}`} className="flex items-start gap-2">
-                        <XCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm text-red-600 dark:text-red-400">{error}</span>
-                      </div>
-                    ))}
-                    {validationResult.warnings.map((warning, index) => (
-                      <div key={`warning-${index}`} className="flex items-start gap-2">
-                        <AlertTriangle className="h-4 w-4 text-yellow-500 mt-0.5 flex-shrink-0" />
-                        <span className="text-sm text-yellow-600 dark:text-yellow-400">{warning}</span>
-                      </div>
-                    ))}
-                  </div>
-                </ScrollArea>
-              )}
+        <div aria-describedby="schema-validation-desc">
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-muted-foreground">
+                Enter JSON data to validate against your schema or a custom JSON Schema
+              </p>
+              <Button variant="outline" size="sm" onClick={generateSampleJson}>
+                Generate Sample
+              </Button>
             </div>
-          )}
+            <div className="flex flex-col md:flex-row gap-4">
+              <div className="flex-1 flex flex-col">
+                <label className="text-xs font-medium mb-1">JSON Schema (optional)</label>
+                <Textarea
+                  placeholder="Paste your JSON Schema here (optional, overrides builder schema)"
+                  value={schemaInput}
+                  onChange={e => setSchemaInput(e.target.value)}
+                  className="min-h-[200px] font-mono text-xs mb-2"
+                />
+              </div>
+              <div className="flex-1 flex flex-col">
+                <label className="text-xs font-medium mb-1">
+                  JSON Data
+                  <span className="text-[10px] text-muted-foreground ml-1">(if no schema is provided, validates against builder schema)</span>
+                </label>
+                <Textarea
+                  placeholder="Enter your JSON data here..."
+                  value={jsonInput}
+                  onChange={(e) => setJsonInput(e.target.value)}
+                  className="min-h-[200px] font-mono text-sm"
+                />
+              </div>
+            </div>
+            <div className="flex gap-2">
+              <Button onClick={handleValidation}>
+                Validate JSON
+              </Button>
+              <Button variant="outline" onClick={() => setJsonInput('')}>
+                Clear
+              </Button>
+            </div>
+            {validationResult && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  {validationResult.isValid ? (
+                    <>
+                      <CheckCircle className="h-5 w-5 text-green-500" />
+                      <Badge variant="default" className="bg-green-500">Valid</Badge>
+                    </>
+                  ) : (
+                    <>
+                      <XCircle className="h-5 w-5 text-red-500" />
+                      <Badge variant="destructive">Invalid</Badge>
+                    </>
+                  )}
+                  <span className="text-sm text-muted-foreground">
+                    {validationResult.errors.length} error(s), {validationResult.warnings.length} warning(s)
+                  </span>
+                </div>
+                {(validationResult.errors.length > 0 || validationResult.warnings.length > 0) && (
+                  <ScrollArea className="h-48 w-full rounded-md border p-4">
+                    <div className="space-y-2">
+                      {validationResult.errors.map((error, index) => (
+                        <div key={`error-${index}`} className="flex items-start gap-2">
+                          <XCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm text-red-600 dark:text-red-400">{error}</span>
+                        </div>
+                      ))}
+                      {validationResult.warnings.map((warning, index) => (
+                        <div key={`warning-${index}`} className="flex items-start gap-2">
+                          <AlertTriangle className="h-4 w-4 text-yellow-500 mt-0.5 flex-shrink-0" />
+                          <span className="text-sm text-yellow-600 dark:text-yellow-400">{warning}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

@@ -8,7 +8,7 @@ import { UserNav } from "@/components/user-nav"
 import { Button } from "@/components/ui/button"
 import { Code2, ArrowLeft } from "lucide-react"
 import Link from "next/link"
-
+import { ThemeToggle } from "./theme-toggle"
 export function SchemaBuilderPage() {
   const { data: session, status } = useSession()
 
@@ -28,22 +28,20 @@ export function SchemaBuilderPage() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center space-x-4">
-              <Link href="/" className="flex items-center space-x-2">
-                <Button variant="ghost" size="sm">
+        <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8">
+          <div className="flex flex-row items-center justify-between py-2 gap-2 w-full">
+            <div className="flex flex-row items-center gap-2 sm:gap-4">
+              <Link href="/" className="flex items-center">
+                <Button variant="ghost" size="sm" className="w-full sm:w-auto">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
                 </Button>
               </Link>
-              <div className="flex items-center space-x-2">
-                <Code2 className="h-6 w-6 text-purple-600" />
-                <span className="text-lg font-semibold">Schema Builder</span>
-              </div>
+              {/* <Code2 className="h-6 w-6 text-purple-600" /> */}
+              {/* <span className="text-lg font-semibold">Schema Builder</span> */}
             </div>
-            
-            <div className="flex items-center space-x-4">
+            <div className="flex items-center gap-2">
+              <ThemeToggle />
               <UserNav />
             </div>
           </div>
@@ -51,7 +49,7 @@ export function SchemaBuilderPage() {
       </header>
 
       {/* Main Content */}
-      <main>
+      <main className="w-full max-w-full overflow-x-hidden">
         <SchemaBuilder />
       </main>
     </div>

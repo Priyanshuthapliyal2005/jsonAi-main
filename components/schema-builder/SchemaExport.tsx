@@ -10,10 +10,12 @@ import { toast } from 'sonner';
 
 interface SchemaExportProps {
   fields: SchemaField[];
+  open: boolean;
+  setOpen: (open: boolean) => void;
 }
 
-export const SchemaExport: React.FC<SchemaExportProps> = ({ fields }) => {
-  const [isOpen, setIsOpen] = useState(false);
+// Removed duplicate/old implementation
+export const SchemaExport: React.FC<SchemaExportProps> = ({ fields, open, setOpen }) => {
 
   const convertToJsonSchema = (fields: SchemaField[]): any => {
     const properties: any = {};
@@ -148,7 +150,7 @@ export const SchemaExport: React.FC<SchemaExportProps> = ({ fields }) => {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="flex items-center gap-2">
           <Download className="h-4 w-4" />
@@ -161,148 +163,150 @@ export const SchemaExport: React.FC<SchemaExportProps> = ({ fields }) => {
             <FileCode className="h-5 w-5" />
             Export Schema
           </DialogTitle>
+          <span id="schema-export-desc" className="sr-only">Export your schema as JSON, TypeScript, Python, or sample data.</span>
         </DialogHeader>
-        
-        <Tabs defaultValue="json-schema" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="json-schema" className="flex items-center gap-1">
-              <FileJson className="h-4 w-4" />
-              JSON Schema
-            </TabsTrigger>
-            <TabsTrigger value="typescript" className="flex items-center gap-1">
-              <Code className="h-4 w-4" />
-              TypeScript
-            </TabsTrigger>
-            <TabsTrigger value="python" className="flex items-center gap-1">
-              <Code className="h-4 w-4" />
-              Python
-            </TabsTrigger>
-            <TabsTrigger value="sample" className="flex items-center gap-1">
-              <FileJson className="h-4 w-4" />
-              Sample Data
-            </TabsTrigger>
-          </TabsList>
+        <div aria-describedby="schema-export-desc">
+          <Tabs defaultValue="json-schema" className="w-full">
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="json-schema" className="flex items-center gap-1">
+                <FileJson className="h-4 w-4" />
+                JSON Schema
+              </TabsTrigger>
+              <TabsTrigger value="typescript" className="flex items-center gap-1">
+                <Code className="h-4 w-4" />
+                TypeScript
+              </TabsTrigger>
+              <TabsTrigger value="python" className="flex items-center gap-1">
+                <Code className="h-4 w-4" />
+                Python
+              </TabsTrigger>
+              <TabsTrigger value="sample" className="flex items-center gap-1">
+                <FileJson className="h-4 w-4" />
+                Sample Data
+              </TabsTrigger>
+            </TabsList>
 
-          <TabsContent value="json-schema" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">JSON Schema</Badge>
-                <span className="text-sm text-muted-foreground">Standard JSON Schema format</span>
+            <TabsContent value="json-schema" className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">JSON Schema</Badge>
+                  <span className="text-sm text-muted-foreground">Standard JSON Schema format</span>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyToClipboard(JSON.stringify(jsonSchema, null, 2), 'JSON Schema')}
+                  >
+                    Copy
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => downloadFile(JSON.stringify(jsonSchema, null, 2), 'schema.json', 'application/json')}
+                  >
+                    Download
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyToClipboard(JSON.stringify(jsonSchema, null, 2), 'JSON Schema')}
-                >
-                  Copy
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => downloadFile(JSON.stringify(jsonSchema, null, 2), 'schema.json', 'application/json')}
-                >
-                  Download
-                </Button>
-              </div>
-            </div>
-            <ScrollArea className="h-96 w-full rounded-md border">
-              <pre className="p-4 text-sm">
-                <code>{JSON.stringify(jsonSchema, null, 2)}</code>
-              </pre>
-            </ScrollArea>
-          </TabsContent>
+              <ScrollArea className="h-96 w-full rounded-md border">
+                <pre className="p-4 text-sm">
+                  <code>{JSON.stringify(jsonSchema, null, 2)}</code>
+                </pre>
+              </ScrollArea>
+            </TabsContent>
 
-          <TabsContent value="typescript" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">TypeScript</Badge>
-                <span className="text-sm text-muted-foreground">Type definitions for TypeScript</span>
+            <TabsContent value="typescript" className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">TypeScript</Badge>
+                  <span className="text-sm text-muted-foreground">Type definitions for TypeScript</span>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyToClipboard(typescriptCode, 'TypeScript interfaces')}
+                  >
+                    Copy
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => downloadFile(typescriptCode, 'schema.ts', 'text/typescript')}
+                  >
+                    Download
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyToClipboard(typescriptCode, 'TypeScript interfaces')}
-                >
-                  Copy
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => downloadFile(typescriptCode, 'schema.ts', 'text/typescript')}
-                >
-                  Download
-                </Button>
-              </div>
-            </div>
-            <ScrollArea className="h-96 w-full rounded-md border">
-              <pre className="p-4 text-sm">
-                <code>{typescriptCode}</code>
-              </pre>
-            </ScrollArea>
-          </TabsContent>
+              <ScrollArea className="h-96 w-full rounded-md border">
+                <pre className="p-4 text-sm">
+                  <code>{typescriptCode}</code>
+                </pre>
+              </ScrollArea>
+            </TabsContent>
 
-          <TabsContent value="python" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">Python</Badge>
-                <span className="text-sm text-muted-foreground">Python class definitions</span>
+            <TabsContent value="python" className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">Python</Badge>
+                  <span className="text-sm text-muted-foreground">Python class definitions</span>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyToClipboard(pythonCode, 'Python classes')}
+                  >
+                    Copy
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => downloadFile(pythonCode, 'schema.py', 'text/python')}
+                  >
+                    Download
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyToClipboard(pythonCode, 'Python classes')}
-                >
-                  Copy
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => downloadFile(pythonCode, 'schema.py', 'text/python')}
-                >
-                  Download
-                </Button>
-              </div>
-            </div>
-            <ScrollArea className="h-96 w-full rounded-md border">
-              <pre className="p-4 text-sm">
-                <code>{pythonCode}</code>
-              </pre>
-            </ScrollArea>
-          </TabsContent>
+              <ScrollArea className="h-96 w-full rounded-md border">
+                <pre className="p-4 text-sm">
+                  <code>{pythonCode}</code>
+                </pre>
+              </ScrollArea>
+            </TabsContent>
 
-          <TabsContent value="sample" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Badge variant="secondary">Sample Data</Badge>
-                <span className="text-sm text-muted-foreground">Example JSON data based on your schema</span>
+            <TabsContent value="sample" className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">Sample Data</Badge>
+                  <span className="text-sm text-muted-foreground">Example JSON data based on your schema</span>
+                </div>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => copyToClipboard(sampleData, 'Sample data')}
+                  >
+                    Copy
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => downloadFile(sampleData, 'sample-data.json', 'application/json')}
+                  >
+                    Download
+                  </Button>
+                </div>
               </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => copyToClipboard(sampleData, 'Sample data')}
-                >
-                  Copy
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => downloadFile(sampleData, 'sample-data.json', 'application/json')}
-                >
-                  Download
-                </Button>
-              </div>
-            </div>
-            <ScrollArea className="h-96 w-full rounded-md border">
-              <pre className="p-4 text-sm">
-                <code>{sampleData}</code>
-              </pre>
-            </ScrollArea>
-          </TabsContent>
-        </Tabs>
+              <ScrollArea className="h-96 w-full rounded-md border">
+                <pre className="p-4 text-sm">
+                  <code>{sampleData}</code>
+                </pre>
+              </ScrollArea>
+            </TabsContent>
+          </Tabs>
+        </div>
       </DialogContent>
     </Dialog>
   );

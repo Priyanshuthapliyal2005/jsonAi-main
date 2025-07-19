@@ -11,6 +11,8 @@ import { generateId } from '@/lib/utils';
 
 interface SchemaTemplatesProps {
   onLoadTemplate: (fields: SchemaField[]) => void;
+  open: boolean;
+  setOpen: (open: boolean) => void;
 }
 
 interface Template {
@@ -22,8 +24,8 @@ interface Template {
   fields: SchemaField[];
 }
 
-export const SchemaTemplates: React.FC<SchemaTemplatesProps> = ({ onLoadTemplate }) => {
-  const [isOpen, setIsOpen] = useState(false);
+// Removed duplicate/old implementation
+export const SchemaTemplates: React.FC<SchemaTemplatesProps> = ({ onLoadTemplate, open, setOpen }) => {
 
   const templates: Template[] = [
     {
@@ -217,12 +219,12 @@ export const SchemaTemplates: React.FC<SchemaTemplatesProps> = ({ onLoadTemplate
 
   const handleLoadTemplate = (template: Template) => {
     onLoadTemplate(template.fields);
-    setIsOpen(false);
+    setOpen(false);
     toast.success(`Loaded template: ${template.name}`);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="flex items-center gap-2">
           <Template className="h-4 w-4" />
@@ -235,54 +237,56 @@ export const SchemaTemplates: React.FC<SchemaTemplatesProps> = ({ onLoadTemplate
             <Template className="h-5 w-5" />
             Schema Templates
           </DialogTitle>
+          <span id="schema-templates-desc" className="sr-only">Browse and load predefined schema templates.</span>
         </DialogHeader>
-        
-        <ScrollArea className="h-[60vh] w-full">
-          <div className="space-y-6">
-            {categories.map(category => (
-              <div key={category}>
-                <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
-                  {category}
-                  <Badge variant="secondary">{templates.filter(t => t.category === category).length}</Badge>
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {templates
-                    .filter(template => template.category === category)
-                    .map(template => (
-                      <Card key={template.id} className="hover:shadow-md transition-shadow cursor-pointer">
-                        <CardHeader className="pb-3">
-                          <div className="flex items-start justify-between">
-                            <div className="flex items-center gap-2">
-                              <template.icon className="h-5 w-5 text-purple-600" />
-                              <CardTitle className="text-base">{template.name}</CardTitle>
+        <div aria-describedby="schema-templates-desc">
+          <ScrollArea className="h-[60vh] w-full">
+            <div className="space-y-6">
+              {categories.map(category => (
+                <div key={category}>
+                  <h3 className="text-lg font-semibold mb-3 flex items-center gap-2">
+                    {category}
+                    <Badge variant="secondary">{templates.filter(t => t.category === category).length}</Badge>
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {templates
+                      .filter(template => template.category === category)
+                      .map(template => (
+                        <Card key={template.id} className="hover:shadow-md transition-shadow cursor-pointer">
+                          <CardHeader className="pb-3">
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-center gap-2">
+                                <template.icon className="h-5 w-5 text-purple-600" />
+                                <CardTitle className="text-base">{template.name}</CardTitle>
+                              </div>
+                              <Button
+                                size="sm"
+                                onClick={() => handleLoadTemplate(template)}
+                                className="hover:bg-purple-50 hover:border-purple-200 dark:hover:bg-purple-900/20"
+                              >
+                                Use Template
+                              </Button>
                             </div>
-                            <Button
-                              size="sm"
-                              onClick={() => handleLoadTemplate(template)}
-                              className="hover:bg-purple-50 hover:border-purple-200 dark:hover:bg-purple-900/20"
-                            >
-                              Use Template
-                            </Button>
-                          </div>
-                          <CardDescription className="text-sm">
-                            {template.description}
-                          </CardDescription>
-                        </CardHeader>
-                        <CardContent className="pt-0">
-                          <div className="flex items-center justify-between text-sm text-muted-foreground">
-                            <span>{template.fields.length} fields</span>
-                            <Badge variant="outline" className="text-xs">
-                              {template.fields.filter(f => f.type === 'Nested').length} nested
-                            </Badge>
-                          </div>
-                        </CardContent>
-                      </Card>
-                    ))}
+                            <CardDescription className="text-sm">
+                              {template.description}
+                            </CardDescription>
+                          </CardHeader>
+                          <CardContent className="pt-0">
+                            <div className="flex items-center justify-between text-sm text-muted-foreground">
+                              <span>{template.fields.length} fields</span>
+                              <Badge variant="outline" className="text-xs">
+                                {template.fields.filter(f => f.type === 'Nested').length} nested
+                              </Badge>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      ))}
+                  </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        </ScrollArea>
+              ))}
+            </div>
+          </ScrollArea>
+        </div>
       </DialogContent>
     </Dialog>
   );

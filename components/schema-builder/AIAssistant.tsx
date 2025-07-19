@@ -8,10 +8,12 @@ import { toast } from 'sonner';
 
 interface AIAssistantProps {
   onGenerate: (fields: SchemaField[]) => void;
+  open: boolean;
+  setOpen: (open: boolean) => void;
 }
 
-export const AIAssistant: React.FC<AIAssistantProps> = ({ onGenerate }) => {
-  const [isOpen, setIsOpen] = useState(false);
+// Removed duplicate/old implementation
+export const AIAssistant: React.FC<AIAssistantProps> = ({ onGenerate, open, setOpen }) => {
   const [prompt, setPrompt] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
@@ -34,7 +36,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ onGenerate }) => {
       if (response.ok) {
         const data = await response.json();
         onGenerate(data.schema);
-        setIsOpen(false);
+        setOpen(false);
         setPrompt('');
       } else {
         toast.error('Failed to generate schema');
@@ -54,7 +56,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ onGenerate }) => {
   ];
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="flex items-center gap-2 bg-gradient-to-r from-purple-50 to-blue-50 hover:from-purple-100 hover:to-blue-100 dark:from-purple-900/20 dark:to-blue-900/20">
           <Sparkles className="h-4 w-4" />
@@ -67,8 +69,10 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ onGenerate }) => {
             <Sparkles className="h-5 w-5 text-purple-600" />
             AI Schema Generator
           </DialogTitle>
+          <span id="ai-assistant-desc" className="sr-only">Generate a JSON schema using AI based on your description.</span>
         </DialogHeader>
-        <div className="space-y-4">
+        <div aria-describedby="ai-assistant-desc">
+          <div className="space-y-4">
           <div>
             <label className="text-sm font-medium mb-2 block">
               Describe your schema:
@@ -81,6 +85,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ onGenerate }) => {
               onKeyDown={(e) => e.key === 'Enter' && !isLoading && handleGenerate()}
             />
           </div>
+        </div>
           
           <div>
             <label className="text-sm font-medium mb-2 block text-gray-600 dark:text-gray-300">
@@ -102,7 +107,7 @@ export const AIAssistant: React.FC<AIAssistantProps> = ({ onGenerate }) => {
           </div>
           
           <div className="flex justify-end gap-2 pt-4">
-            <Button variant="outline" onClick={() => setIsOpen(false)}>
+            <Button variant="outline" onClick={() => setOpen(false)}>
               Cancel
             </Button>
             <Button onClick={handleGenerate} disabled={isLoading || !prompt.trim()}>

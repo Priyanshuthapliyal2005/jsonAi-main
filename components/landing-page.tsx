@@ -81,8 +81,7 @@ export function LandingPage() {
       <div className="fixed inset-0 w-full h-full -z-10">
         <VideoBackground />
       </div>
-      {/* Overlay for readability (reduced opacity for clearer video) */}
-      <div className="fixed inset-0 w-full h-full -z-10 bg-gradient-to-br from-purple-50 via-white to-blue-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900 opacity-10"></div>
+      {/* Remove overlay for clarity; add text shadow to hero text for contrast */}
       {/* Navigation */}
       <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -170,55 +169,73 @@ export function LandingPage() {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative flex justify-center items-center min-h-[100vh] py-24 lg:py-40">
+      <section className="relative flex justify-center items-center min-h-[100vh] py-20 lg:py-40">
         <div className="absolute inset-0 -z-10 pointer-events-none">
           <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
           <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
           <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
         </div>
-        <div className="absolute inset-0 flex justify-center items-center">
+        <div className="relative z-10 w-full max-w-3xl mx-auto flex flex-col items-center justify-center px-4 gap-8 text-center">
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="w-full max-w-xl mx-auto text-center px-4"
+            className="w-full"
           >
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white drop-shadow-lg mb-8">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)] mb-4 md:mb-8">
               Build JSON Schemas
-              <span className="block bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent drop-shadow-lg">
+              <span className="block bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]">
                 Visually & Intelligently
               </span>
             </h1>
-            <p className="text-xl md:text-2xl text-gray-700 dark:text-white/90 mb-10 drop-shadow">
+          </motion.div>
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="w-full"
+          >
+            <p className="text-xl md:text-2xl text-white/90 mb-8 md:mb-10 drop-shadow-[0_2px_8px_rgba(0,0,0,0.7)]">
               Create, validate, and manage JSON schemas with our powerful visual builder, 
               enhanced by AI assistance and real-time collaboration.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center w-full">
               {session ? (
-                <Link href="/builder">
-                  <Button size="lg" className="text-lg px-8 py-4">
+                <Link href="/builder" className="w-full sm:w-auto">
+                  <Button size="lg" className="text-lg px-8 py-4 w-full sm:w-auto min-w-[180px]">
                     Open Builder
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
               ) : (
-                <Button size="lg" className="text-lg px-8 py-4" onClick={() => signIn()}>
+                <Button size="lg" className="text-lg px-8 py-4 w-full sm:w-auto min-w-[180px]" onClick={() => signIn()}>
                   Start Building Free
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               )}
-              <Button variant="outline" size="lg" className="text-lg px-8 py-4 text-white border-white hover:bg-white hover:text-purple-600">
-                Watch Demo
-              </Button>
+              <a
+                href="https://cal.com/priyanshuthapliyal/15min"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto"
+              >
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="text-lg px-8 py-4 w-full sm:w-auto min-w-[180px] border-gray-300 text-gray-900 dark:text-white dark:border-white hover:bg-gray-100 hover:text-purple-600 dark:hover:bg-white dark:hover:text-purple-600"
+                >
+                  Schedule Demo
+                </Button>
+              </a>
             </div>
           </motion.div>
         </div>
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20 bg-white dark:bg-gray-800">
+      <section id="features" className="py-16 bg-white dark:bg-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 dark:text-white mb-4">
               Powerful Features for Modern Development
             </h2>
@@ -227,7 +244,7 @@ export function LandingPage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
@@ -236,13 +253,13 @@ export function LandingPage() {
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
               >
-                <Card className="h-full hover:shadow-lg transition-shadow">
-                  <CardHeader>
+                <Card className="h-full hover:shadow-lg transition-shadow p-6 flex flex-col items-center text-center">
+                  <CardHeader className="flex flex-col items-center">
                     <feature.icon className="h-12 w-12 text-purple-600 mb-4" />
-                    <CardTitle className="text-xl">{feature.title}</CardTitle>
+                    <CardTitle className="text-xl mb-2">{feature.title}</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                    <CardDescription className="text-base">
+                  <CardContent className="flex-1 flex flex-col justify-center">
+                    <CardDescription className="text-base mb-2">
                       {feature.description}
                     </CardDescription>
                   </CardContent>
@@ -318,61 +335,49 @@ export function LandingPage() {
               Start Building Today
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Button size="lg" variant="outline" className="text-lg px-8 py-4 text-white border-white hover:bg-white hover:text-purple-600">
-              Schedule Demo
-            </Button>
+            <a
+              href="https://cal.com/priyanshuthapliyal/15min"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full sm:w-auto"
+            >
+              <Button size="lg" variant="outline" className="text-lg px-8 py-4 text-white border-white hover:bg-white hover:text-purple-600 w-full sm:w-auto">
+                Schedule Demo
+              </Button>
+            </a>
           </div>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="bg-gray-900 text-white py-12">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div className="col-span-1 md:col-span-2">
-              <div className="flex items-center space-x-2 mb-4">
-                <Code2 className="h-8 w-8 text-purple-400" />
-                <span className="text-xl font-bold">Schema Builder Pro</span>
-              </div>
-              <p className="text-gray-400 mb-4 max-w-md">
-                The most powerful and intuitive JSON schema builder for modern development teams.
-              </p>
-              <div className="flex space-x-4">
-                <Button variant="ghost" size="icon">
-                  <Github className="h-5 w-5" />
-                </Button>
-                <Button variant="ghost" size="icon">
-                  <Twitter className="h-5 w-5" />
-                </Button>
-                <Button variant="ghost" size="icon">
-                  <Linkedin className="h-5 w-5" />
-                </Button>
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Product</h3>
-              <div className="space-y-2 text-gray-400">
-                <Link href="#features" className="block hover:text-white transition-colors">Features</Link>
-                <Link href="/builder" className="block hover:text-white transition-colors">Builder</Link>
-                <Link href="#" className="block hover:text-white transition-colors">API</Link>
-                <Link href="#" className="block hover:text-white transition-colors">Documentation</Link>
-              </div>
-            </div>
-            
-            <div>
-              <h3 className="font-semibold mb-4">Support</h3>
-              <div className="space-y-2 text-gray-400">
-                <Link href="#" className="block hover:text-white transition-colors">Documentation</Link>
-                <Link href="#" className="block hover:text-white transition-colors">Help Center</Link>
-                <Link href="#" className="block hover:text-white transition-colors">Contact</Link>
-                <Link href="#" className="block hover:text-white transition-colors">Status</Link>
-              </div>
-            </div>
+        <div className="max-w-2xl mx-auto px-4 flex flex-col items-center text-center">
+          <div className="flex items-center space-x-2 mb-4">
+            <Code2 className="h-8 w-8 text-purple-400" />
+            <span className="text-xl font-bold">Schema Builder Pro</span>
           </div>
-          
-          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400">
-            <p>&copy; 2024 Schema Builder Pro. All rights reserved.</p>
+          <p className="text-gray-400 mb-4 max-w-lg">
+            The most powerful and intuitive JSON schema builder for modern development teams.
+          </p>
+          <div className="flex space-x-4 mb-6">
+            <a href="https://github.com/Priyanshuthapliyal2005" target="_blank" rel="noopener noreferrer" title="GitHub">
+              <Button variant="ghost" size="icon" aria-label="GitHub">
+                <Github className="h-5 w-5" />
+              </Button>
+            </a>
+            <a href="https://www.linkedin.com/in/priyanshu-thapliyal/" target="_blank" rel="noopener noreferrer" title="LinkedIn">
+              <Button variant="ghost" size="icon" aria-label="LinkedIn">
+                <Linkedin className="h-5 w-5" />
+              </Button>
+            </a>
+            <a href="https://priyanshuthapliyal.me/" target="_blank" rel="noopener noreferrer" title="Portfolio">
+              <Button variant="ghost" size="icon" aria-label="Portfolio">
+                <span className="font-bold text-lg">PT</span>
+              </Button>
+            </a>
+          </div>
+          <div className="border-t border-gray-800 w-full pt-8 text-center text-gray-400">
+            <p>Built in July 2025 by <a href="https://priyanshuthapliyal.me/" target="_blank" rel="noopener noreferrer" className="underline hover:text-white">Priyanshu Thapliyal</a>. All rights reserved.</p>
           </div>
         </div>
       </footer>

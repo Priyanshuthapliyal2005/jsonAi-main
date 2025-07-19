@@ -1,3 +1,7 @@
+// Extend the session user type to include id
+import { Session } from "next-auth";
+
+type SessionUserWithId = Session["user"] & { id: string };
 import { NextAuthOptions } from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import EmailProvider from "next-auth/providers/email";
@@ -33,7 +37,7 @@ export const authOptions: NextAuthOptions = {
   callbacks: {
     session: async ({ session, token }) => {
       if (session?.user) {
-        session.user.id = token.sub!;
+        (session.user as SessionUserWithId).id = token.sub!;
       }
       return session;
     },

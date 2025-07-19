@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent } from '@/components/ui/card';
-import { SchemaField, FieldRowProps } from '@/types/schema';
+import { SchemaField } from '@/types/schema';
 import { NestedFields } from './NestedFields';
 import { generateId } from '@/lib/utils';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -112,7 +112,7 @@ export const FieldRow: React.FC<FieldRowProps> = ({
           <div className="flex items-center space-x-2">
             <Checkbox
               checked={localField.value as boolean}
-              onChange={(checked) => handleFieldChange({value: checked})}
+              onCheckedChange={(checked) => handleFieldChange({ value: !!checked })}
             />
             <span className="text-sm">Default: {localField.value ? 'true' : 'false'}</span>
           </div>
@@ -221,32 +221,32 @@ export const FieldRow: React.FC<FieldRowProps> = ({
   return (
     <Card className="mb-4 transition-all duration-200 hover:shadow-md" style={{ marginLeft: `${indentLevel}px` }}>
       <CardContent className="p-4">
-        <div className="flex items-center gap-3 mb-3">
-          {localField.type === 'Nested' && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="p-1 h-6 w-6 hover:bg-gray-100 dark:hover:bg-gray-800"
-            >
-              {isExpanded ? (
-                <ChevronDown className="h-4 w-4" />
-              ) : (
-                <ChevronRight className="h-4 w-4" />
-              )}
-            </Button>
-          )}
-
-          <div className="flex-1 flex items-center gap-3 flex-wrap">
+        <div className="flex flex-col sm:flex-row items-stretch gap-3 mb-3">
+          <div className="flex items-center gap-2">
+            {localField.type === 'Nested' && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsExpanded(!isExpanded)}
+                className="p-1 h-6 w-6 hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                {isExpanded ? (
+                  <ChevronDown className="h-4 w-4" />
+                ) : (
+                  <ChevronRight className="h-4 w-4" />
+                )}
+              </Button>
+            )}
+          </div>
+          <div className="flex-1 flex flex-col xs:flex-row flex-wrap gap-2">
             <Input
               placeholder="Field name"
               value={localField.name}
               onChange={(e) => handleFieldChange({ name: e.target.value })}
-              className="w-40 min-w-[160px]"
+              className="w-full xs:w-40 min-w-[120px]"
             />
-
             <Select value={localField.type} onValueChange={handleTypeChange}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-full xs:w-32">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -257,49 +257,45 @@ export const FieldRow: React.FC<FieldRowProps> = ({
                 ))}
               </SelectContent>
             </Select>
-
-        <div className="flex items-center space-x-2">
-          <Checkbox
-            checked={localField.required || false}
-            onChange={(checked) => handleFieldChange({required: checked})}
-          />
-          <span className="text-sm">Required</span>
-        </div>
-
-            
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                checked={localField.required || false}
+                onCheckedChange={(checked) => handleFieldChange({ required: !!checked })}
+              />
+              <span className="text-sm">Required</span>
+            </div>
           </div>
-
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => onDelete(index)}
-            className="h-9 w-9 p-0 hover:bg-red-600"
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center justify-end mt-2 sm:mt-0">
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={() => onDelete(index)}
+              className="h-9 w-9 p-0 hover:bg-red-600"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
-            {localField.type !== 'Nested' && localField.type !== 'Object' && (
-        <div className="flex flex-col gap-2">
-          <label className="text-sm font-medium">Value Configuration:</label>
-          {renderValueInput()}
-        </div>
-      )}
-
-      <div className="flex flex-col gap-2">
-        <Input
-          placeholder="Description (optional)"
-          value={localField.description || ''}
-          onChange={(e) => handleFieldChange({description: e.target.value})}
-        />
-        {localField.type === 'String' && (
-          <Input
-            placeholder="Pattern (regex, optional)"
-            value={localField.pattern || ''}
-            onChange={(e) => handleFieldChange({pattern: e.target.value})}
-          />
+        {localField.type !== 'Nested' && localField.type !== 'Object' && (
+          <div className="flex flex-col gap-2">
+            <label className="text-sm font-medium">Value Configuration:</label>
+            {renderValueInput()}
+          </div>
         )}
-      </div>
-
+        <div className="flex flex-col gap-2 mt-2">
+          <Input
+            placeholder="Description (optional)"
+            value={localField.description || ''}
+            onChange={(e) => handleFieldChange({description: e.target.value})}
+          />
+          {localField.type === 'String' && (
+            <Input
+              placeholder="Pattern (regex, optional)"
+              value={localField.pattern || ''}
+              onChange={(e) => handleFieldChange({pattern: e.target.value})}
+            />
+          )}
+        </div>
         {localField.type === 'Nested' && isExpanded && localField.children && (
           <div className="mt-4 border-l-2 border-purple-200 dark:border-purple-800 pl-4 relative">
             <div className="absolute -left-[2px] top-0 bottom-0 w-[2px] bg-gradient-to-b from-purple-400 to-blue-400 opacity-60"></div>
