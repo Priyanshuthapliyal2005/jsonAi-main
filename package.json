@@ -1,7 +1,10 @@
 {
   "name": "json-schema-builder-pro",
   "version": "0.1.0",
+  "license": "UNLICENSED",
   "private": true,
+  "author": "Priyanshu Thapliyal priyanshuthapliyal2005@gmail.com",
+  "description": "A professional JSON schema builder with AI assistance",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
