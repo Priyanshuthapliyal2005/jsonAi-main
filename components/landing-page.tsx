@@ -76,7 +76,7 @@ export function LandingPage() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
 
   return (
-    <div className="relative min-h-screen">
+    <div className="relative min-h-screen overflow-x-hidden">
       {/* Full page video background */}
       <div className="fixed inset-0 w-full h-full -z-10">
         <VideoBackground />
@@ -171,9 +171,9 @@ export function LandingPage() {
       {/* Hero Section */}
       <section className="relative flex justify-center items-center min-h-[100vh] py-20 lg:py-40">
         <div className="absolute inset-0 -z-10 pointer-events-none">
-          <div className="absolute top-1/4 left-1/4 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
-          <div className="absolute top-1/3 right-1/4 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
-          <div className="absolute bottom-1/4 left-1/3 w-72 h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
+          <div className="absolute top-1/4 left-1/4 w-48 h-48 sm:w-72 sm:h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
+          <div className="absolute top-1/3 right-1/4 w-48 h-48 sm:w-72 sm:h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-2000"></div>
+          <div className="absolute bottom-1/4 left-1/3 w-48 h-48 sm:w-72 sm:h-72 bg-pink-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob animation-delay-4000"></div>
         </div>
         <div className="relative z-10 w-full max-w-3xl mx-auto flex flex-col items-center justify-center px-4 gap-8 text-center">
           <motion.div
@@ -202,13 +202,13 @@ export function LandingPage() {
             <div className="flex flex-col sm:flex-row gap-4 justify-center w-full">
               {session ? (
                 <Link href="/builder" className="w-full sm:w-auto">
-                  <Button size="lg" className="text-lg px-8 py-4 w-full sm:w-auto min-w-[180px]">
+                  <Button size="lg" className="text-lg px-8 py-4 w-full sm:w-auto min-w-0 sm:min-w-[180px]">
                     Open Builder
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
               ) : (
-                <Button size="lg" className="text-lg px-8 py-4 w-full sm:w-auto min-w-[180px]" onClick={() => signIn()}>
+                <Button size="lg" className="text-lg px-8 py-4 w-full sm:w-auto min-w-0 sm:min-w-[180px]" onClick={() => signIn()}>
                   Start Building Free
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
@@ -222,7 +222,7 @@ export function LandingPage() {
                 <Button
                   variant="outline"
                   size="lg"
-                  className="text-lg px-8 py-4 w-full sm:w-auto min-w-[180px] border-gray-300 text-gray-900 dark:text-white dark:border-white hover:bg-gray-100 hover:text-purple-600 dark:hover:bg-white dark:hover:text-purple-600"
+                  className="text-lg px-8 py-4 w-full sm:w-auto min-w-0 sm:min-w-[180px] border-gray-300 text-gray-900 dark:text-white dark:border-white hover:bg-gray-100 hover:text-purple-600 dark:hover:bg-white dark:hover:text-purple-600"
                 >
                   Schedule Demo
                 </Button>
@@ -281,40 +281,35 @@ export function LandingPage() {
               See what our users are saying about Schema Builder Pro.
             </p>
           </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                viewport={{ once: true }}
-              >
-                <Card className="h-full">
-                  <CardHeader>
-                    <div className="flex items-center space-x-1 mb-2">
-                      {[...Array(testimonial.rating)].map((_, i) => (
-                        <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
-                      ))}
-                    </div>
-                    <CardDescription className="text-base italic">
-                      "{testimonial.content}"
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div>
-                      <p className="font-semibold text-gray-900 dark:text-white">
-                        {testimonial.name}
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-300">
-                        {testimonial.role} at {testimonial.company}
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
+          <div className="overflow-hidden w-full">
+            <div className="flex whitespace-nowrap animate-marquee-reverse" style={{ animationDuration: '15s' }}>
+              {Array(4).fill(0).flatMap(() => testimonials).map((testimonial, index) => (
+                <div key={index} className="w-80 mx-4 inline-block">
+                  <Card className="h-64 flex flex-col justify-between">
+                    <CardHeader>
+                      <div className="flex items-center space-x-1 mb-2">
+                        {[...Array(testimonial.rating)].map((_, i) => (
+                          <Star key={i} className="h-5 w-5 fill-yellow-400 text-yellow-400" />
+                        ))}
+                      </div>
+                      <CardDescription className="text-base italic testimonial-ellipsis">
+                        "{testimonial.content}"
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div>
+                        <p className="font-semibold text-gray-900 dark:text-white">
+                          {testimonial.name}
+                        </p>
+                        <p className="text-sm text-gray-600 dark:text-gray-300">
+                          {testimonial.role} at {testimonial.company}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -331,7 +326,7 @@ export function LandingPage() {
             Join thousands of developers who are already using Schema Builder Pro to streamline their workflow.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" variant="secondary" className="text-lg px-8 py-4" onClick={() => signIn()}>
+            <Button size="lg" variant="secondary" className="text-lg px-8 py-4 w-full sm:w-auto min-w-0 sm:min-w-[180px]" onClick={() => signIn()}>
               Start Building Today
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
@@ -341,7 +336,7 @@ export function LandingPage() {
               rel="noopener noreferrer"
               className="w-full sm:w-auto"
             >
-              <Button size="lg" variant="outline" className="text-lg px-8 py-4 text-white border-white hover:bg-white hover:text-purple-600 w-full sm:w-auto">
+              <Button size="lg" variant="outline" className="text-lg px-8 py-4 text-white border-white hover:bg-white hover:text-purple-600 w-full sm:w-auto min-w-0 sm:min-w-[180px]">
                 Schedule Demo
               </Button>
             </a>

@@ -1,3 +1,21 @@
+
+/* Multi-line ellipsis for testimonial text */
+.testimonial-ellipsis {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 3.6em;
+}
+@keyframes marquee-reverse {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+.animate-marquee-reverse {
+  animation: marquee-reverse linear infinite;
+}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
